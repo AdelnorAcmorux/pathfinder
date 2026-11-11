@@ -1,0 +1,4 @@
+# Routing engine data (large, regenerated locally)
+routing/data/
+routing/graph-cache/
+.env
