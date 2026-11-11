@@ -1,4 +1,10 @@
 # Routing engine data (large, regenerated locally)
 routing/data/
 routing/graph-cache/
+routing/*.jar
 .env
+
+# Node
+node_modules/
+dist/
+.DS_Store
