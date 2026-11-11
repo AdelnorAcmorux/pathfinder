@@ -2,6 +2,7 @@
 routing/data/
 routing/graph-cache/
 routing/*.jar
+routing/logs/
 .env
 
 # Node
