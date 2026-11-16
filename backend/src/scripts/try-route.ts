@@ -1,24 +1,27 @@
-import { readFile } from "node:fs/promises";
+import { readFileSync, writeFileSync } from "node:fs";
 import { GraphHopperClient, type LngLat } from "../engine/graphhopper.js";
+import { generateAToB } from "../generator/generate.js";
 
-const client = new GraphHopperClient();
+const runningModel = JSON.parse(readFileSync("../routing/custom_models/running.json", "utf8"));
 
-const from: LngLat = [-73.57, 45.5265]; // Parc La Fontaine
-const to: LngLat = [-73.5875, 45.5048]; // Mont Royal lookout
+// Use the same A and B you used for your last run
+const A: LngLat = [-73.587, 45.5035];
+const B: LngLat = [-73.6277, 45.53];
+const TARGET_M = 7_000;
 
-const running = JSON.parse(
-  await readFile(
-    new URL("../../../routing/custom_models/running.json", import.meta.url),
-    "utf8",
-  ),
-);
+const res = await generateAToB(new GraphHopperClient(), A, B, TARGET_M, runningModel);
 
-for (const [name, model] of [
-  ["neutral", undefined],
-  ["running", running],
-] as const) {
-  const r = await client.route([from, to], model);
-  console.log(
-    `${name}: ${Math.round(r.distanceM)} m, ascend ${Math.round(r.ascendM)} m, descend ${Math.round(r.descendM)} m`,
-  );
+console.log("notices:", res.notices);
+for (const r of res.routes) {
+  console.log(`${Math.round(r.distanceM)} m, +${Math.round(r.ascendM)} m climb`);
 }
+
+const geojson = {
+  type: "FeatureCollection",
+  features: res.routes.map((r, i) => ({
+    type: "Feature",
+    properties: { name: `route ${i + 1}`, distanceM: Math.round(r.distanceM) },
+    geometry: { type: "LineString", coordinates: r.coordinates },
+  })),
+};
+writeFileSync("routes.geojson", JSON.stringify(geojson));
