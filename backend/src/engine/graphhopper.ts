@@ -21,6 +21,7 @@ export class GraphHopperClient {
         points_encoded: false,
         elevation: true,
         custom_model: customModel,
+        pass_through: points.length > 2, // GraphHopper ignores this if there are more than 2 point
       }),
     });
 

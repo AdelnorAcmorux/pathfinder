@@ -5,9 +5,13 @@ import { generateAToB } from "../generator/generate.js";
 const runningModel = JSON.parse(readFileSync("../routing/custom_models/running.json", "utf8"));
 
 // Use the same A and B you used for your last run
-const A: LngLat = [-73.587, 45.5035];
-const B: LngLat = [-73.6277, 45.53];
-const TARGET_M = 7_000;
+//const A: LngLat = [-73.587, 45.5035];
+//const B: LngLat = [-73.6277, 45.53];
+const TARGET_M = 5_000;
+
+// test neibhboring points to see if the route is stable
+const A: LngLat = [-73.75546, 45.625203];
+const B: LngLat = [-73.745436, 45.637052];
 
 const res = await generateAToB(new GraphHopperClient(), A, B, TARGET_M, runningModel);
 

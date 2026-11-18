@@ -3,10 +3,11 @@ import {
   LENGTH_TOLERANCE,
   MAX_OVERLAP,
   MAX_ROUTES_RETURNED,
+  MAX_SELF_OVERLAP,
   MAX_WIDEN_STEPS,
   WIDEN_STEP_M,
 } from "./config.js";
-import { dropNearDuplicates, filterByRange, sortByClosest } from "./filter.js";
+import { dropNearDuplicates, filterByRange, selfOverlapRatio, sortByClosest } from "./filter.js";
 import type { GeneratorNotice, GeneratorResult, LngLat, RoutingEngine } from "./types.js";
 
 export async function generateAToB(
@@ -20,8 +21,11 @@ export async function generateAToB(
   const { direct, pool } = await collectCandidates(
     engine, a, b, targetM, targetM - baseTol, targetM + baseTol, customModel,
   );
-  const all = [direct, ...pool];
-
+  // Reject routes that run out and back along the same street.
+  const all = [direct, ...pool].filter((r) => selfOverlapRatio(r) <= MAX_SELF_OVERLAP);
+console.log("pool:", all.length,
+  "| in ±10%:", filterByRange(all, targetM - baseTol, targetM + baseTol).length,
+  "| lengths:", all.map(r => Math.round(r.distanceM)).sort((a, b) => a - b));
   // Widening is just a re-filter of the pool: no extra GraphHopper calls.
   for (let step = 0; step <= MAX_WIDEN_STEPS; step++) {
     const extraM = step * WIDEN_STEP_M; // applies to both sides
